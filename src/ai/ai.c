@@ -130,10 +130,12 @@ bool applyAction(sokoban_t* init_data, node_t* n, node_t** new_node, move_t acti
 /**
  * Book keeping variable and function to free memory once the solver finishes
 */
-void update_explore_table(node_t* n, unsigned expanded_nodes, node_t **expanded_nodes_table, unsigned *expanded_nodes_table_size) {
-    if( expanded_nodes > (*expanded_nodes_table_size) - 1){
-	(*expanded_nodes_table_size) *= 2;
-	expanded_nodes_table = realloc( expanded_nodes_table, sizeof(node_t*) * (*expanded_nodes_table_size) );
+node_t** expanded_nodes_table;
+unsigned expanded_nodes_table_size = 10000000; //10M
+void update_explore_table(node_t* n, unsigned expanded_nodes ){
+    if( expanded_nodes > expanded_nodes_table_size - 1){
+	expanded_nodes_table_size *= 2;
+	expanded_nodes_table = realloc( expanded_nodes_table, sizeof(node_t*) * expanded_nodes_table_size );
 	
     }
     
@@ -141,16 +143,9 @@ void update_explore_table(node_t* n, unsigned expanded_nodes, node_t **expanded_
 
 }
 
-void free_memory(unsigned expanded_nodes, node_t **expanded_nodes_table, sokoban_t* init_data){
-	node_t *curr_n;
+void free_memory(unsigned expanded_nodes ){
 	for( unsigned i = 0; i < expanded_nodes; i++){
-		printf("Freeing node %d\n", i);
-		curr_n = expanded_nodes_table[ i ];
-		for (int i = 0; i < init_data->lines; ++i) {
-			free(curr_n->state.map[i]);
-		}
-		free(curr_n->state.map);
-		free(curr_n);
+		free(expanded_nodes_table[ i ]);
     }
 	free(expanded_nodes_table);
 }
@@ -208,8 +203,7 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 
 	// Initialize expanded nodes table. 
 	// This table will be used to free your memory once a solution is found
-	unsigned expanded_nodes_table_size = 10000000; //10M
-	node_t **expanded_nodes_table = (node_t**) malloc( sizeof(node_t*) * expanded_nodes_table_size ); 
+	expanded_nodes_table = (node_t**) malloc( sizeof(node_t*) * expanded_nodes_table_size ); 
 
 
 	// Add the initial node
@@ -221,8 +215,6 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 	/** 
 	 * FILL IN THE GRAPH ALGORITHM 
 	 * */
-
-	// Until queue is empty
 	while (pq.count > 0) {
 		// Pop
 		n = heap_delete(&pq);
@@ -233,7 +225,7 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 
 		// Explored Nodes / Explored Table stuff
 		expanded_nodes++;
-		update_explore_table(n, expanded_nodes, expanded_nodes_table, &expanded_nodes_table_size);
+		update_explore_table(n, expanded_nodes);
 
 		if (winning_condition(init_data, &n->state)) {
 			// Free old solution string and save new one
@@ -276,15 +268,11 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 	}
 
 	//----------------------------
-
-	// Free priority queue
-	free(pq.heaparr);
-	emptyPQ(&pq);
-
+	
 	// Free Memory of HashTable, Explored and flatmap
 	ht_clear(&hashTable);
 	ht_destroy(&hashTable);
-	free_memory(expanded_nodes, expanded_nodes_table, init_data);
+	free_memory(expanded_nodes);
 	free(flat_map);
 	//----------------------------
 

@@ -264,6 +264,10 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 
 			if (ht_contains(&hashTable, flat_map)) {
 				duplicated_nodes++;
+				for (int i = 0; i < init_data->lines; i++) {
+					free(new_node->state.map[i]);
+				}
+				free(new_node->state.map);
 				free(new_node);
 				continue;
 			}
@@ -275,7 +279,7 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 
 	//----------------------------
 	//Free priority queue
-	emptyPQ(&pq);
+	emptyPQ(&pq, init_data);
 	free(pq.heaparr);
 
 	// Free Memory of HashTable, Explored and flatmap

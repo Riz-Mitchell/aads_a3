@@ -34,6 +34,6 @@ void heap_display(struct heap *h, sokoban_t *init_data);
 
 node_t* heap_delete(struct heap* h);
 
-void emptyPQ(struct heap* pq);
+void emptyPQ(struct heap* pq, sokoban_t *init_data);
 
 #endif

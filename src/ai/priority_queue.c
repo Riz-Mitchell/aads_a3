@@ -71,7 +71,7 @@ void heap_display(struct heap* h, sokoban_t* init_data) {
 	    printf("priority = %d", n->priority);
 	    printf("\n");
 	    for (int i = 0; i < init_data->lines; i++)
-			mvprintw(i, 0, n->state.map[i]);
+			mvprintw(i, 0, "%s", n->state.map[i]);		// "%s" added to fix an error
 		move(n->state.player_y, n->state.player_x);
 	}
 }
@@ -96,9 +96,15 @@ node_t* heap_delete(struct heap* h)
 }
 
 
-void emptyPQ(struct heap* pq) {
+void emptyPQ(struct heap* pq, sokoban_t* init_data) {
 	while(pq->count != 0) {
 		node_t* n = heap_delete(pq);
+		/* Node freeing process changed to accomodate state.map */
+		for (int i = 0; i < init_data->lines; i++) {
+			free(n->state.map[i]);
+		}
+		free(n->state.map);
+		/* ----------------------------------------------------- */
 		free(n);
 		//printf("<<%d", heap_delete(pq));
 	}

@@ -143,8 +143,14 @@ void update_explore_table(node_t* n, unsigned expanded_nodes ){
 
 }
 
-void free_memory(unsigned expanded_nodes ){
+void free_memory(unsigned expanded_nodes, sokoban_t* init_data){
 	for( unsigned i = 0; i < expanded_nodes; i++){
+		// Changed to free the map
+		for (int j = 0; j < init_data->lines; j++) {
+			free(expanded_nodes_table[i]->state.map[j]);
+		}
+		free(expanded_nodes_table[i]->state.map);
+		// ------------------------
 		free(expanded_nodes_table[ i ]);
     }
 	free(expanded_nodes_table);
@@ -224,8 +230,8 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 		}
 
 		// Explored Nodes / Explored Table stuff
-		expanded_nodes++;
 		update_explore_table(n, expanded_nodes);
+		expanded_nodes++;
 
 		if (winning_condition(init_data, &n->state)) {
 			// Free old solution string and save new one
@@ -268,11 +274,14 @@ void find_solution(sokoban_t* init_data, bool show_solution)
 	}
 
 	//----------------------------
-	
+	//Free priority queue
+	emptyPQ(&pq);
+	free(pq.heaparr);
+
 	// Free Memory of HashTable, Explored and flatmap
 	ht_clear(&hashTable);
 	ht_destroy(&hashTable);
-	free_memory(expanded_nodes);
+	free_memory(expanded_nodes, init_data);
 	free(flat_map);
 	//----------------------------
 
